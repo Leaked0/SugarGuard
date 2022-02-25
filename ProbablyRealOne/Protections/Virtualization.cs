@@ -1,4 +1,4 @@
-﻿using dnlib.DotNet;
+using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using SugarGuard.Core;
 using SugarGuard.Helpers.DynConverter;
@@ -76,45 +76,46 @@ namespace SugarGuard.Protections
                     cli.Variables.Add(locf);
                 }
 
-
-
-            var outp = 0;
-            cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, meth.Parameters.Count));
-            cli.Instructions.Add(new Instruction(OpCodes.Newarr, module.CorLibTypes.Object.ToTypeDefOrRef()));
-            for (var i = 0; i < meth.Parameters.Count; i++)
+            if(meth.Parameters.Count > 0)
             {
-                var par = meth.Parameters[i];
-                cli.Instructions.Add(new Instruction(OpCodes.Dup));
-                cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, i));
-                if (containsOut)
-                    if (rrr.Contains(meth.Parameters[i]))
-                    {
-                        cli.Instructions.Add(new Instruction(OpCodes.Ldloc, testerDictionary[meth.Parameters[i]]));
-                        outp++;
-                    }
-                    else
-                    {
-                        cli.Instructions.Add(new Instruction(OpCodes.Ldarg, meth.Parameters[i]));
-                    }
-                else
-                    cli.Instructions.Add(new Instruction(OpCodes.Ldarg, meth.Parameters[i]));
-
-                if (true)
+                var outp = 0;
+                cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, meth.Parameters.Count));
+                cli.Instructions.Add(new Instruction(OpCodes.Newarr, module.CorLibTypes.Object.ToTypeDefOrRef()));
+                for (var i = 0; i < meth.Parameters.Count; i++)
                 {
-                    cli.Instructions.Add(par.Type.FullName.EndsWith("&")
-                        ? new Instruction(OpCodes.Box, par.Type.Next.ToTypeDefOrRef())
-                        : new Instruction(OpCodes.Box, par.Type.ToTypeDefOrRef()));
-                    cli.Instructions.Add(new Instruction(OpCodes.Stelem_Ref));
+                    var par = meth.Parameters[i];
+                    cli.Instructions.Add(new Instruction(OpCodes.Dup));
+                    cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, i));
+                    if (containsOut)
+                        if (rrr.Contains(meth.Parameters[i]))
+                        {
+                            cli.Instructions.Add(new Instruction(OpCodes.Ldloc, testerDictionary[meth.Parameters[i]]));
+                            outp++;
+                        }
+                        else
+                        {
+                            cli.Instructions.Add(new Instruction(OpCodes.Ldarg, meth.Parameters[i]));
+                        }
+                    else
+                        cli.Instructions.Add(new Instruction(OpCodes.Ldarg, meth.Parameters[i]));
+
+                    if (true)
+                    {
+                        cli.Instructions.Add(par.Type.FullName.EndsWith("&")
+                            ? new Instruction(OpCodes.Box, par.Type.Next.ToTypeDefOrRef())
+                            : new Instruction(OpCodes.Box, par.Type.ToTypeDefOrRef()));
+                        cli.Instructions.Add(new Instruction(OpCodes.Stelem_Ref));
+                    }
                 }
+                cli.Instructions.Add(new Instruction(OpCodes.Stloc, loc2));
+                cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, pos));
+                cli.Instructions.Add(new Instruction(OpCodes.Ldloc, loc2));
             }
-
-
-            cli.Instructions.Add(new Instruction(OpCodes.Stloc, loc2));
-            cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, pos));
-
-            cli.Instructions.Add(new Instruction(OpCodes.Ldloc, loc2));
-
-
+            else
+            {
+                cli.Instructions.Add(new Instruction(OpCodes.Ldc_I4, pos));
+                cli.Instructions.Add(new Instruction(OpCodes.Ldnull));
+            }
             cli.Instructions.Add(Instruction.Create(OpCodes.Call, executeCall));
             if (meth.ReturnType.ElementType == ElementType.Void)
                 cli.Instructions.Add(Instruction.Create(OpCodes.Pop));
