@@ -34,5 +34,7 @@
 - Invalid Opcodes
 - Method Hider
 - Renamer
-
+  
+## GUI Screenshot
+![](https://i.imgur.com/ecxddDy.png)
 </details>
